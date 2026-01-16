@@ -1,0 +1,63 @@
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+import java.time.Duration;
+
+public class FullLoginTest {
+
+    WebDriver driver;
+    WebDriverWait wait;
+
+    @BeforeMethod
+    public void setup() {
+        WebDriverManager.chromedriver().setup();
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        driver.get("https://the-internet.herokuapp.com/login");
+    }
+
+    @Test
+    public void loginAndCheckElements() {
+        // ?????????
+        String header = wait.until(ExpectedConditions.visibilityOfElementLocated(By.tagName("h2")))
+                .getText();
+        Assert.assertEquals(header, "Login Page");
+
+        // ????
+        WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
+        WebElement passwordField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")));
+        Assert.assertTrue(usernameField.isDisplayed());
+        Assert.assertTrue(passwordField.isDisplayed());
+
+        // ????
+        usernameField.sendKeys("tomsmith");
+        passwordField.sendKeys("SuperSecretPassword!");
+
+        // ?????? Login
+        WebElement loginButton = wait.until(ExpectedConditions.elementToBeClickable(By.className("radius")));
+        Assert.assertTrue(loginButton.isDisplayed());
+        loginButton.click();
+
+        // ?????????
+        String message = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("flash"))).getText();
+        Assert.assertTrue(message.contains("You logged into a secure area!"));
+
+        // Logout
+        WebElement logoutButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".icon-2x.icon-signout")));
+        Assert.assertTrue(logoutButton.isDisplayed());
+    }
+
+    @AfterMethod
+    public void teardown() {
+        driver.quit();
+    }
+}
